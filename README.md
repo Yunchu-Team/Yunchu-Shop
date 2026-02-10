@@ -123,11 +123,10 @@ python run.py
 ## 📸 截图预览
 
 <div align="center">
-
-![首页](https://via.placeholder.com/800x450/3498db/ffffff?text=Homepage+View)
-![商品列表](https://via.placeholder.com/800x450/e74c3c/ffffff?text=Product+List+View)
-![后台管理](https://via.placeholder.com/800x450/2ecc71/ffffff?text=Admin+Dashboard+View)
-
+<img width="1347" height="817" alt="image" src="https://github.com/user-attachments/assets/9c154c33-e00e-4d39-8f9e-1d350041ef38" />
+<img width="1452" height="745" alt="image" src="https://github.com/user-attachments/assets/e7bdf831-07ff-4374-9f43-ae92ef5b7598" />
+<img width="1337" height="745" alt="image" src="https://github.com/user-attachments/assets/1c265e52-4532-4872-81a3-f3103c19e303" />
+<img width="1351" height="580" alt="image" src="https://github.com/user-attachments/assets/63008778-c4ef-4928-bd8a-11485a9ae219" />
 </div>
 
 ## 📋 配置说明
