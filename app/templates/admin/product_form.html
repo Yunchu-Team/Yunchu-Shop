@@ -1,0 +1,96 @@
+﻿{% extends "base.html" %}
+
+{% block title %}{{ '编辑商品' if product else '添加商品' }} - 管理后台{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h4>管理菜单</h4>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.dashboard') }}" class="text-decoration-none">仪表盘</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.user_management') }}" class="text-decoration-none">用户管理</a>
+                    </li>
+                    <li class="list-group-item active">
+                        <a href="{{ url_for('admin.product_management') }}" class="text-decoration-none text-white">商品管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.order_management') }}" class="text-decoration-none">订单管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.discount_management') }}" class="text-decoration-none">折扣码管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.affiliate_management') }}" class="text-decoration-none">邀请与提现管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.settings') }}" class="text-decoration-none">站点设置</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <h3>{{ '编辑商品' if product else '添加商品' }}</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="form-group mb-3">
+                            <label for="name" class="form-label">商品名称</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ product.name if product else '' }}" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="price" class="form-label">价格</label>
+                            <input type="number" class="form-control" id="price" name="price" step="0.01" value="{{ product.price if product else '' }}" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="description" class="form-label">商品描述</label>
+                            <textarea class="form-control" id="description" name="description" rows="5" required>{{ product.description if product else '' }}</textarea>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="category" class="form-label">商品分类</label>
+                            <select class="form-control" id="category" name="category">
+                                <option value="默认分类" {{ 'selected' if product and product.category == '默认分类' else '' }}>默认分类</option>
+                                <option value="游戏" {{ 'selected' if product and product.category == '游戏' else '' }}>游戏</option>
+                                <option value="软件" {{ 'selected' if product and product.category == '软件' else '' }}>软件</option>
+                                <option value="服务" {{ 'selected' if product and product.category == '服务' else '' }}>服务</option>
+                                <option value="其他" {{ 'selected' if product and product.category == '其他' else '' }}>其他</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="tags" class="form-label">标签（用逗号分隔）</label>
+                            <input type="text" class="form-control" id="tags" name="tags" value="{{ product.tags if product else '' }}">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="stock" class="form-label">库存</label>
+                            <input type="number" class="form-control" id="stock" name="stock" value="{{ product.stock_virtual if product else 0 }}">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="image" class="form-label">商品图片</label>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                            {% if product and product.image_filename %}
+                            <small class="form-text text-muted">当前图片：{{ product.image_filename }}</small>
+                            {% endif %}
+                        </div>
+                        {% if product %}
+                        <div class="form-group mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if product.is_active %}checked{% endif %}>
+                                <label class="form-check-label" for="is_active">上架</label>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <button type="submit" class="btn btn-primary">{{ '更新商品' if product else '添加商品' }}</button>
+                        <a href="{{ url_for('admin.product_management') }}" class="btn btn-secondary">取消</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

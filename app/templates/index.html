@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - 云初の小店{% endblock %}
+
+{% block content %}
+    <!-- 首页横幅 -->
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <div class="hero-banner p-5 rounded-4 shadow-sm">
+                <h1 class="display-4 fw-bold">欢迎来到云初の小店</h1>
+                <p class="lead">{{ site_settings.about_us|replace('|', '<br>')|safe if site_settings and site_settings.about_us else (site_settings.site_name if site_settings else '云初の小店') ~ ' - 提供优质商品和服务' }}</p>
+                <a href="{{ url_for('product.product_list') }}" class="btn btn-light btn-lg mt-3 rounded-3">浏览商品</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 热门商品 -->
+    {% if hot_products %}
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold">热门商品</h2>
+                <a href="{{ url_for('product.product_list') }}" class="text-decoration-none">查看全部 <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="product-grid">
+                {% for product in hot_products %}
+                <div class="card">
+                    {% if product.image_filename %}
+                    <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text text-muted">{{ product.description[:50] }}{% if product.description|length > 50 %}...{% endif %}</p>
+                        <p class="card-text fw-bold text-danger">¥{{ "%.2f"|format(product.price) }}</p>
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('product.product_detail', product_id=product.id) }}" class="btn btn-primary btn-sm flex-fill">查看详情</a>
+                            <button class="btn btn-success btn-sm add-to-cart-btn" data-product-id="{{ product.id }}"><i class="bi bi-cart-plus"></i></button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 最新上架 -->
+    {% if new_products %}
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold">最新上架</h2>
+                <a href="{{ url_for('product.product_list') }}" class="text-decoration-none">查看全部 <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="product-grid">
+                {% for product in new_products %}
+                <div class="card">
+                    {% if product.image_filename %}
+                    <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text text-muted">{{ product.description[:50] }}{% if product.description|length > 50 %}...{% endif %}</p>
+                        <p class="card-text fw-bold text-danger">¥{{ "%.2f"|format(product.price) }}</p>
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('product.product_detail', product_id=product.id) }}" class="btn btn-primary btn-sm flex-fill">查看详情</a>
+                            <button class="btn btn-success btn-sm add-to-cart-btn" data-product-id="{{ product.id }}"><i class="bi bi-cart-plus"></i></button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 商品为空时的提示 -->
+    {% if not hot_products and not new_products %}
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="bi bi-box-seam display-1 text-muted"></i>
+                </div>
+                <h3 class="fw-bold text-muted mb-3">暂无商品</h3>
+                <p class="text-muted mb-4">当前店铺还没有上架任何商品，请稍后再来查看。</p>
+                {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                <a href="{{ url_for('admin.product_management') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> 添加商品
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block js %}
+    <!-- 商品列表JavaScript -->
+    <script src="{{ url_for('static', filename='js/product-filter.js') }}"></script>
+{% endblock %}

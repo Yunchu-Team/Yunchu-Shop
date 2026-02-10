@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}商品列表 - 云初の小店{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <!-- 筛选侧边栏已移除 -->
+        
+        <!-- 商品列表 -->
+        <div class="col-md-12">
+            
+            <!-- 排序 -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="sort" class="form-label">排序方式</label>
+                                <select class="form-control sort-select" id="sort">
+                                    <option value="default" {% if sort_by == 'default' %}selected{% endif %}>默认排序</option>
+                                    <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>价格从低到高</option>
+                                    <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>价格从高到低</option>
+                                    <option value="sold_count" {% if sort_by == 'sold_count' %}selected{% endif %}>销量优先</option>
+                                    <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>最新上架</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 商品网格 -->
+            <div class="loading-indicator d-none">
+                <div class="text-center py-5">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">加载中...</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="product-grid product-list-container">
+                {% for product in pagination.items %}
+                <div class="card">
+                    {% if product.image_filename %}
+                    <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text">{{ product.description[:100] }}...</p>
+                        <p class="card-text font-weight-bold">¥{{ product.price }}</p>
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('product.product_detail', product_id=product.id) }}" class="btn btn-primary btn-sm">查看详情</a>
+                            <button class="btn btn-success btn-sm add-to-cart-btn" data-product-id="{{ product.id }}">加入购物车</button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- 分页 -->
+            <div class="pagination-container mt-4">
+                {% if pagination.pages > 1 %}
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if pagination.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ pagination.get_url(pagination.prev()) }}">上一页</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">上一页</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for page_num in pagination.iter_pages() %}
+                        {% if page_num %}
+                        {% if pagination.page == page_num %}
+                        <li class="page-item active" aria-current="page">
+                            <a class="page-link" href="#">{{ page_num }}</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ pagination.get_url(page_num) }}">{{ page_num }}</a>
+                        </li>
+                        {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#">...</a>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+                        
+                        {% if pagination.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ pagination.get_url(pagination.next()) }}">下一页</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">下一页</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- 筛选遮罩已移除 -->
+{% endblock %}
+
+{% block js %}{% endblock %}

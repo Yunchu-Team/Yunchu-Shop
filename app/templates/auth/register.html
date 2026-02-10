@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}注册 - 商品售卖网站{% endblock %}
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center">注册</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('auth.register') }}" enctype="multipart/form-data">
+                        <div class="form-group mb-3">
+                            <label for="username" class="form-label">用户名</label>
+                            <input type="text" class="form-control" id="username" name="username" minlength="3" maxlength="20" required>
+                            <div id="username-error" class="invalid-feedback d-none"></div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="display_name" class="form-label">显示名称</label>
+                            <input type="text" class="form-control" id="display_name" name="display_name" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="email" class="form-label">邮箱</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                            <div id="email-error" class="invalid-feedback d-none"></div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="password" class="form-label">密码</label>
+                            <input type="password" class="form-control" id="password" name="password" minlength="6" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="confirm_password" class="form-label">确认密码</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                            <div id="confirm_password-error" class="invalid-feedback d-none"></div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="contact" class="form-label">联系电话</label>
+                            <input type="text" class="form-control" id="contact" name="contact">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="invite_code" class="form-label">邀请码（可选）</label>
+                            <input type="text" class="form-control" id="invite_code" name="invite_code">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="avatar" class="form-label">头像（可选）</label>
+                            <input type="file" class="form-control" id="avatar" name="avatar">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">注册</button>
+                    </form>
+                    <div class="mt-4 text-center">
+                        <p>已有账号？<a href="{{ url_for('auth.login') }}">立即登录</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        // 初始化表单验证
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const usernameInput = document.getElementById('username');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirm_password');
+            
+            // 密码匹配验证
+            confirmPasswordInput.addEventListener('input', function() {
+                if (this.value !== passwordInput.value) {
+                    this.classList.add('is-invalid');
+                    document.getElementById('confirm_password-error').textContent = '密码不匹配';
+                    document.getElementById('confirm_password-error').classList.remove('d-none');
+                } else {
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                    document.getElementById('confirm_password-error').classList.add('d-none');
+                }
+            });
+            
+            // 用户名可用性检查
+            usernameInput.addEventListener('blur', function() {
+                if (this.value.length >= 3) {
+                    fetch(`{{ url_for('auth.check_username') }}?username=${encodeURIComponent(this.value)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (!data.available) {
+                                usernameInput.classList.add('is-invalid');
+                                document.getElementById('username-error').textContent = '用户名已被使用';
+                                document.getElementById('username-error').classList.remove('d-none');
+                            } else {
+                                usernameInput.classList.remove('is-invalid');
+                                usernameInput.classList.add('is-valid');
+                                document.getElementById('username-error').classList.add('d-none');
+                            }
+                        });
+                }
+            });
+            
+            // 邮箱可用性检查
+            emailInput.addEventListener('blur', function() {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (emailRegex.test(this.value)) {
+                    fetch(`{{ url_for('auth.check_email') }}?email=${encodeURIComponent(this.value)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (!data.available) {
+                                emailInput.classList.add('is-invalid');
+                                document.getElementById('email-error').textContent = '邮箱已被使用';
+                                document.getElementById('email-error').classList.remove('d-none');
+                            } else {
+                                emailInput.classList.remove('is-invalid');
+                                emailInput.classList.add('is-valid');
+                                document.getElementById('email-error').classList.add('d-none');
+                            }
+                        });
+                }
+            });
+        });
+    </script>
+{% endblock %}

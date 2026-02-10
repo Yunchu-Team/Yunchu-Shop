@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}个人中心 - 商品售卖网站{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h4>个人中心</h4>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item active">
+                        <a href="{{ url_for('user.profile_edit') }}" class="text-decoration-none text-white">个人资料</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('user.order_history') }}" class="text-decoration-none">订单历史</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('user.invite_management') }}" class="text-decoration-none">邀请管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('user.earnings') }}" class="text-decoration-none">我的收益</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('user.withdrawal') }}" class="text-decoration-none">提现记录</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('user.settings') }}" class="text-decoration-none">账户设置</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <h3>个人资料</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <div class="mb-4">
+                                {% if current_user.avatar_filename %}
+                                    {% if current_user.avatar_filename.startswith('http://') or current_user.avatar_filename.startswith('https://') %}
+                                        <img src="{{ current_user.avatar_filename }}" class="rounded-circle" alt="用户头像" style="width: 150px; height: 150px;">
+                                    {% else %}
+                                        <img src="/uploads/{{ current_user.avatar_filename }}" class="rounded-circle" alt="用户头像" style="width: 150px; height: 150px;">
+                                    {% endif %}
+                                {% else %}
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-light" style="width: 150px; height: 150px;">
+                                        <span class="text-muted">暂无头像</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <label class="btn btn-primary w-100" for="avatar">更换头像</label>
+                        </div>
+                        <div class="col-md-8">
+                            <form method="POST" action="{{ url_for('user.update_profile') }}" enctype="multipart/form-data">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <div class="form-group mb-3">
+                                    <label for="username" class="form-label">用户名</label>
+                                    <input type="text" class="form-control" id="username" value="{{ current_user.username }}" disabled>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="avatar" class="form-label">头像</label>
+                                    <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*">
+                                    <small class="form-text text-muted">上传后将保存到 GitHub 仓库</small>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="display_name" class="form-label">显示名称</label>
+                                    <input type="text" class="form-control" id="display_name" name="display_name" value="{{ current_user.display_name }}">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="invite_code" class="form-label">邀请码</label>
+                                    <input type="text" class="form-control" id="invite_code" name="invite_code" value="{{ current_user.invite_code }}">
+                                    <small class="form-text text-muted">修改后需保证唯一</small>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="email" class="form-label">邮箱</label>
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="contact" class="form-label">联系电话</label>
+                                    <input type="text" class="form-control" id="contact" name="contact" value="{{ current_user.contact }}">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="role" class="form-label">用户角色</label>
+                                    <input type="text" class="form-control" id="role" value="{{ '管理员' if current_user.role == 'admin' else '普通用户' if current_user.role == 'user' else current_user.role }}" disabled>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="created_at" class="form-label">注册时间</label>
+                                    <input type="text" class="form-control" id="created_at" value="{{ current_user.created_at }}" disabled>
+                                </div>
+                                <button type="submit" class="btn btn-primary">保存修改</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

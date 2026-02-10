@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}站点设置 - 管理后台{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h4>管理菜单</h4>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.dashboard') }}" class="text-decoration-none">仪表盘</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.user_management') }}" class="text-decoration-none">用户管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.product_management') }}" class="text-decoration-none">商品管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.order_management') }}" class="text-decoration-none">订单管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.discount_management') }}" class="text-decoration-none">折扣码管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.affiliate_management') }}" class="text-decoration-none">邀请与提现管理</a>
+                    </li>
+                    <li class="list-group-item active">
+                        <a href="{{ url_for('admin.settings') }}" class="text-decoration-none text-white">站点设置</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <h3>邀请系统设置</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin.update_settings') }}" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="form-group mb-3">
+                            <label for="commission_rate" class="form-label">佣金比例（0-1之间的小数）</label>
+                            <input type="number" class="form-control" id="commission_rate" name="commission_rate" step="0.01" min="0" max="1" value="{{ commission_rate }}" required>
+                            <small class="form-text text-muted">例如：0.1 表示10%的佣金比例</small>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="settlement_period" class="form-label">结算周期（天）</label>
+                            <input type="number" class="form-control" id="settlement_period" name="settlement_period" min="1" value="{{ settlement_period }}" required>
+                            <small class="form-text text-muted">佣金结算的周期，单位为天</small>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="min_withdrawal" class="form-label">最低提现金额</label>
+                            <input type="number" class="form-control" id="min_withdrawal" name="min_withdrawal" step="0.01" min="0" value="{{ min_withdrawal }}" required>
+                            <small class="form-text text-muted">用户可提现的最低金额</small>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="site_name" class="form-label">站点名称</label>
+                            <input type="text" class="form-control" id="site_name" name="site_name" value="{{ site_settings.site_name if site_settings else '云初の小店' }}" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="site_description" class="form-label">站点描述</label>
+                            <textarea class="form-control" id="site_description" name="site_description" rows="3">{{ site_settings.site_description if site_settings else '' }}</textarea>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="contact_email" class="form-label">联系邮箱</label>
+                            <input type="email" class="form-control" id="contact_email" name="contact_email" value="{{ site_settings.contact_email if site_settings else '' }}">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="footer_text" class="form-label">页脚文本</label>
+                            <input type="text" class="form-control" id="footer_text" name="footer_text" value="{{ site_settings.footer_text if site_settings else '' }}">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="about_us" class="form-label">关于我们</label>
+                            <textarea class="form-control" id="about_us" name="about_us" rows="5">{{ site_settings.about_us if site_settings else '' }}</textarea>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="quick_links" class="form-label">快速链接</label>
+                            <textarea class="form-control" id="quick_links" name="quick_links" rows="5" placeholder="每行格式：标题|URL">{% if quick_links %}{% for link in quick_links %}{{ link.title }}|{{ link.url }}
+{% endfor %}{% endif %}</textarea>
+                            <small class="form-text text-muted">每行格式：标题|URL，例如：首页|/</small>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="bank_label" class="form-label">银行标签</label>
+                            <input type="text" class="form-control" id="bank_label" name="bank_label" value="{{ site_settings.bank_label if site_settings else '' }}">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="site_logo" class="form-label">站点Logo</label>
+                            <input type="file" class="form-control" id="site_logo" name="site_logo" accept="image/*">
+                            {% if site_settings and site_settings.site_logo %}
+                            <div class="mt-2">
+                                <img src="{% if site_settings.site_logo.startswith('http') %}{{ site_settings.site_logo }}{% else %}/uploads/{{ site_settings.site_logo }}{% endif %}" alt="站点Logo" style="max-height: 100px;">
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="site_logo_url" class="form-label">站点Logo URL（可选）</label>
+                            <input type="text" class="form-control" id="site_logo_url" name="site_logo_url" placeholder="直接输入图片URL">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="wechat_qr" class="form-label">微信支付二维码</label>
+                            <input type="file" class="form-control" id="wechat_qr" name="wechat_qr" accept="image/*">
+                            {% if site_settings and site_settings.wechat_qr %}
+                            <div class="mt-2">
+                                <img src="{% if site_settings.wechat_qr.startswith('http') %}{{ site_settings.wechat_qr }}{% else %}/uploads/{{ site_settings.wechat_qr }}{% endif %}" alt="微信支付二维码" style="max-height: 100px;">
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="wechat_qr_url" class="form-label">微信支付二维码URL（可选）</label>
+                            <input type="text" class="form-control" id="wechat_qr_url" name="wechat_qr_url" placeholder="直接输入图片URL">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="alipay_qr" class="form-label">支付宝支付二维码</label>
+                            <input type="file" class="form-control" id="alipay_qr" name="alipay_qr" accept="image/*">
+                            {% if site_settings and site_settings.alipay_qr %}
+                            <div class="mt-2">
+                                <img src="{% if site_settings.alipay_qr.startswith('http') %}{{ site_settings.alipay_qr }}{% else %}/uploads/{{ site_settings.alipay_qr }}{% endif %}" alt="支付宝支付二维码" style="max-height: 100px;">
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="alipay_qr_url" class="form-label">支付宝支付二维码URL（可选）</label>
+                            <input type="text" class="form-control" id="alipay_qr_url" name="alipay_qr_url" placeholder="直接输入图片URL">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="bank_qr" class="form-label">银行卡支付二维码</label>
+                            <input type="file" class="form-control" id="bank_qr" name="bank_qr" accept="image/*">
+                            {% if site_settings and site_settings.bank_qr %}
+                            <div class="mt-2">
+                                <img src="{% if site_settings.bank_qr.startswith('http') %}{{ site_settings.bank_qr }}{% else %}/uploads/{{ site_settings.bank_qr }}{% endif %}" alt="银行卡支付二维码" style="max-height: 100px;">
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="bank_qr_url" class="form-label">银行卡支付二维码URL（可选）</label>
+                            <input type="text" class="form-control" id="bank_qr_url" name="bank_qr_url" placeholder="直接输入图片URL">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="gh_repo" class="form-label">GitHub仓库地址</label>
+                            <input type="text" class="form-control" id="gh_repo" name="gh_repo" value="{{ site_settings.gh_repo if site_settings else '' }}">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="gh_branch" class="form-label">GitHub分支</label>
+                            <input type="text" class="form-control" id="gh_branch" name="gh_branch" value="{{ site_settings.gh_branch if site_settings else 'main' }}">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="gh_token" class="form-label">GitHub访问令牌</label>
+                            <input type="password" class="form-control" id="gh_token" name="gh_token" placeholder="留空表示不修改">
+                        </div>
+                        <button type="submit" class="btn btn-primary">保存设置</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

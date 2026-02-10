@@ -1,0 +1,684 @@
+/* 鍏ㄥ眬鏍峰紡 - 绾櫧鑹查珮闆呴鏍?*/
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    line-height: 1.6;
+    color: #2c3e50;
+    background-color: #ffffff;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* 瀵艰埅鏍忔牱寮?- 绾櫧绠€绾?*/
+.navbar {
+    background-color: #ffffff;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 1rem 0;
+}
+
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.5rem;
+    color: #2c3e50 !important;
+    letter-spacing: -0.5px;
+}
+
+.navbar-brand i {
+    color: #666;
+    margin-right: 0.5rem;
+}
+
+.navbar-nav .nav-link {
+    font-weight: 500;
+    color: #555 !important;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.navbar-nav .nav-link:hover {
+    background-color: #f8f9fa;
+    color: #2c3e50 !important;
+}
+
+/* 鎸夐挳鏍峰紡 - 鍦嗚璁捐 */
+.btn {
+    border-radius: 10px;
+    font-weight: 500;
+    padding: 0.625rem 1.25rem;
+    transition: all 0.2s ease;
+    border: 1px solid currentColor;
+    background-color: transparent;
+}
+
+.btn-primary {
+    color: #2c3e50;
+    border-color: #2c3e50;
+    background-color: transparent;
+}
+
+.btn-primary:hover {
+    color: #34495e;
+    border-color: #34495e;
+    background-color: transparent;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(44, 62, 80, 0.12);
+}
+
+.btn-secondary {
+    color: #6c757d;
+    border-color: #6c757d;
+    background-color: transparent;
+}
+
+.btn-secondary:hover {
+    color: #5c636a;
+    border-color: #5c636a;
+    background-color: transparent;
+}
+
+.btn-success {
+    color: #27ae60;
+    border-color: #27ae60;
+    background-color: transparent;
+}
+
+.btn-success:hover {
+    color: #2ecc71;
+    border-color: #2ecc71;
+    background-color: transparent;
+}
+
+.btn-danger {
+    color: #e74c3c;
+    border-color: #e74c3c;
+    background-color: transparent;
+}
+
+.btn-danger:hover {
+    color: #c0392b;
+    border-color: #c0392b;
+    background-color: transparent;
+}
+
+.btn-warning {
+    color: #f39c12;
+    border-color: #f39c12;
+    background-color: transparent;
+}
+
+.btn-warning:hover {
+    color: #e67e22;
+    border-color: #e67e22;
+    background-color: transparent;
+}
+
+.btn-info {
+    color: #17a2b8;
+    border-color: #17a2b8;
+    background-color: transparent;
+}
+
+.btn-info:hover {
+    color: #138496;
+    border-color: #138496;
+    background-color: transparent;
+}
+
+.btn-light {
+    color: #6c757d;
+    border-color: #e0e0e0;
+    background-color: transparent;
+}
+
+.btn-light:hover {
+    color: #495057;
+    border-color: #d7d7d7;
+    background-color: transparent;
+}
+
+.btn-dark {
+    color: #212529;
+    border-color: #212529;
+    background-color: transparent;
+}
+
+.btn-dark:hover {
+    color: #000;
+    border-color: #000;
+    background-color: transparent;
+}\n.btn-outline-dark {
+    border: 1px solid #e0e0e0;
+    color: #555;
+    background-color: transparent;
+}
+
+.btn-outline-dark:hover {
+    background-color: #f8f9fa;
+    border-color: #ccc;
+    color: #2c3e50;
+}
+
+.btn-success {
+    color: #27ae60;
+    border-color: #27ae60;
+    background-color: white;
+}
+
+.btn-success:hover {
+    color: #2ecc71;
+    border-color: #2ecc71;
+    background-color: white;
+}
+
+.btn-danger {
+    color: #e74c3c;
+    border-color: #e74c3c;
+    background-color: white;
+}
+
+.btn-danger:hover {
+    color: #c0392b;
+    border-color: #c0392b;
+    background-color: white;
+}
+
+/* 鍗＄墖鏍峰紡 - 澶у渾瑙?*/
+.card {
+    background-color: #ffffff;
+    border: 1px solid #f0f0f0;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-title {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.75rem;
+}
+
+.card-text {
+    color: #666;
+    line-height: 1.6;
+}
+
+/* 琛ㄥ崟鏍峰紡 - 鍦嗚 */
+.form-control {
+    border-radius: 10px;
+    border: 1.5px solid #cfd3d8;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    background-color: #fafafa;
+}
+
+.form-control:focus {
+    border-color: #9aa2ab;
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.12);
+    outline: none;
+}
+
+.form-label {
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 0.5rem;
+}
+
+/* 杈撳叆妗嗙粍 */
+.input-group {
+    gap: 0.5rem;
+}
+
+.input-group .form-control {
+    border-radius: 10px;
+}
+
+.input-group .btn {
+    border-radius: 10px;
+}\n/* 鍒嗗壊绾挎牱寮?*/
+hr {
+    border: 0;
+    border-top: 1.5px solid #d7dbe0;
+    opacity: 1;
+}
+
+/* 鍟嗗搧缃戞牸 */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+/* 鍟嗗搧鍗＄墖 */
+.product-card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.08);
+}
+
+.product-card .product-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    background-color: #f8f9fa;
+}
+
+.product-card .product-info {
+    padding: 1.25rem;
+}
+
+.product-card .product-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.product-card .product-price {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #e74c3c;
+}
+
+/* 璐墿杞︽牱寮?*/
+.cart-item {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    border: 1px solid #f0f0f0;
+}
+
+.cart-item:last-child {
+    margin-bottom: 0;
+}
+
+.cart-item-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+}
+
+.cart-item-actions .input-group {
+    flex-wrap: nowrap;
+    width: 160px;
+}
+
+.cart-item-actions .quantity-btn {
+    min-width: 38px;
+}
+
+.cart-item-actions .quantity-input {
+    min-width: 56px;
+    color: #2c3e50;
+}
+
+/* 璁㈠崟鐘舵€佹牱寮?- 鍦嗚鏍囩 */
+.order-status {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.order-status.pending_payment {
+    background-color: #fff7e6;
+    color: #ad6800;
+    border: 1px solid #ffe7ba;
+}
+
+.order-status.user_paid {
+    background-color: #e6fffb;
+    color: #006d75;
+    border: 1px solid #b5f5ec;
+}
+
+.order-status.shipped {
+    background-color: #f0f5ff;
+    color: #2f54eb;
+    border: 1px solid #adc6ff;
+}
+
+.order-status.completed {
+    background-color: #f6ffed;
+    color: #389e0d;
+    border: 1px solid #b7eb8f;
+}
+
+.order-status.rejected {
+    background-color: #fff1f0;
+    color: #cf1322;
+    border: 1px solid #ffa39e;
+}
+
+/* 琛ㄦ牸鏍峰紡 */
+.table {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.table thead th {
+    background-color: #fafafa;
+    border-bottom: 1px solid #f0f0f0;
+    font-weight: 600;
+    color: #555;
+    padding: 1rem;
+}
+
+.table tbody td {
+    padding: 1rem;
+    border-bottom: 1px solid #f8f8f8;
+    vertical-align: middle;
+}
+
+/* 椤佃剼鏍峰紡 - 绠€绾?*/
+.footer {
+    background-color: #fafafa;
+    border-top: 1px solid #f0f0f0;
+    color: #666;
+    padding: 3rem 0 2rem;
+    margin-top: 4rem;
+}
+
+.footer h5 {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.footer a {
+    color: #666;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.footer a:hover {
+    color: #2c3e50;
+}
+
+.footer ul li {
+    margin-bottom: 0.5rem;
+}
+
+/* 鍒嗛〉鏍峰紡 */
+.pagination {
+    margin-top: 2rem;
+    justify-content: center;
+}
+
+.page-item .page-link {
+    border: none;
+    color: #666;
+    padding: 0.625rem 1rem;
+    margin: 0 0.25rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.page-item .page-link:hover {
+    background-color: #f0f0f0;
+    color: #2c3e50;
+}
+
+.page-item.active .page-link {
+    background-color: #2c3e50;
+    color: white;
+}
+
+/* 寰界珷鏍峰紡 */
+.badge {
+    padding: 0.5em 0.75em;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+/* 璀﹀憡妗嗘牱寮?*/
+.alert {
+    border: none;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+}
+
+/* 妯℃€佹鏍峰紡 */
+.modal-content {
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+    border-bottom: 1px solid #f0f0f0;
+    padding: 1.25rem;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid #f0f0f0;
+    padding: 1.25rem;
+}
+
+/* 涓嬫媺鑿滃崟鏍峰紡 */
+.dropdown-menu {
+    border: 1px solid #f0f0f0;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    padding: 0.5rem;
+}
+
+.dropdown-item {
+    border-radius: 8px;
+    padding: 0.625rem 1rem;
+    transition: all 0.2s;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* 瀵艰埅鏍囩椤?*/
+.nav-tabs {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    color: #666;
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px 8px 0 0;
+}
+
+.nav-tabs .nav-link:hover {
+    background-color: #f8f9fa;
+    color: #2c3e50;
+}
+
+.nav-tabs .nav-link.active {
+    background-color: #2c3e50;
+    color: white;
+}
+
+/* 鍒楄〃缁勬牱寮?*/
+.list-group-item {
+    border: 1px solid #f0f0f0;
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+    padding: 1rem 1.25rem;
+}
+
+.list-group-item:first-child,
+.list-group-item:last-child {
+    border-radius: 10px;
+}
+
+/* 杩涘害鏉℃牱寮?*/
+.progress {
+    height: 8px;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+}
+
+.progress-bar {
+    border-radius: 4px;
+    background-color: #2c3e50;
+}
+
+/* 澶村儚鏍峰紡 */
+.avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #f0f0f0;
+}
+
+.avatar-lg {
+    width: 80px;
+    height: 80px;
+}
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+}
+
+/* 缁熻鍗＄墖 */
+.stat-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.stat-card .stat-label {
+    color: #888;
+    font-size: 0.9rem;
+}
+
+/* 鎼滅储妗嗘牱寮?*/
+.search-form .form-control {
+    border-radius: 10px;
+    min-width: 200px;
+}
+
+.search-form .btn {
+    border-radius: 10px;
+}\n/* 鍝嶅簲寮忚皟鏁?*/
+@media (max-width: 768px) {
+    .product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 16px;
+    }
+
+    .navbar-brand {
+        font-size: 1.25rem;
+    }
+
+    .card {
+        border-radius: 12px;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+    }
+
+    .footer {
+        padding: 2rem 0 1.5rem;
+    }
+}
+
+/* 棣栭〉妯箙 */
+.hero-banner {
+    background: linear-gradient(135deg, #f8f2e8 0%, #efe3d2 100%);
+    color: #3b2f23;
+    border: 1px solid #eadcc8;
+}
+
+/* 鍔ㄧ敾鏁堟灉 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.4s ease;
+}
+
+/* 婊氬姩鏉℃牱寮?*/
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f8f9fa;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #ccc;
+}
+
+.btn-group {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-group > .btn {
+    border-radius: 999px !important;
+}
+
+.btn-group .btn + .btn {
+    margin-left: 0;
+}

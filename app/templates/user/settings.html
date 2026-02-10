@@ -1,0 +1,59 @@
+﻿{% extends "base.html" %}
+
+{% block title %}账户设置 - 商品售卖网站{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h4>个人中心</h4>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <a href="{{ url_for('user.profile_edit') }}" class="text-decoration-none">个人资料</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('user.order_history') }}" class="text-decoration-none">订单历史</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('user.invite_management') }}" class="text-decoration-none">邀请管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('user.earnings') }}" class="text-decoration-none">我的收益</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('user.withdrawal') }}" class="text-decoration-none">提现记录</a>
+                    </li>
+                    <li class="list-group-item active">
+                        <a href="{{ url_for('user.settings') }}" class="text-decoration-none text-white">账户设置</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>修改密码</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('user.change_password') }}">
+                        <div class="form-group mb-3">
+                            <label for="current_password" class="form-label">当前密码</label>
+                            <input type="password" class="form-control" id="current_password" name="current_password" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="new_password" class="form-label">新密码</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password" minlength="6" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="confirm_password" class="form-label">确认新密码</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" minlength="6" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">修改密码</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

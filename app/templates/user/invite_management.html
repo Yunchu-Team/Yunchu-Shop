@@ -1,0 +1,104 @@
+﻿{% extends "base.html" %}
+
+{% block title %}邀请管理 - 商品售卖网站{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h4>个人中心</h4>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <a href="{{ url_for('user.profile_edit') }}" class="text-decoration-none">个人资料</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('user.order_history') }}" class="text-decoration-none">订单历史</a>
+                    </li>
+                    <li class="list-group-item active">
+                        <a href="{{ url_for('user.invite_management') }}" class="text-decoration-none text-white">邀请管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('user.earnings') }}" class="text-decoration-none">我的收益</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('user.withdrawal') }}" class="text-decoration-none">提现记录</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('user.settings') }}" class="text-decoration-none">账户设置</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>我的邀请码</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>邀请码：</strong></p>
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control" value="{{ invite_code }}" readonly>
+                                <button class="btn btn-primary" onclick="copyToClipboard('{{ invite_code }}')">复制</button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>邀请链接：</strong></p>
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control" value="{{ invite_link }}" readonly>
+                                <button class="btn btn-primary" onclick="copyToClipboard('{{ invite_link }}')">复制</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3>我邀请的用户</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>用户名</th>
+                                    <th>显示名称</th>
+                                    <th>邀请时间</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for invitee in invitees %}
+                                <tr>
+                                    <td>{{ invitee.username }}</td>
+                                    <td>{{ invitee.display_name }}</td>
+                                    <td>{{ invitee.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="3" class="text-center">暂无邀请记录</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                alert('复制成功');
+            }, function(err) {
+                alert('复制失败');
+            });
+        }
+    </script>
+{% endblock %}

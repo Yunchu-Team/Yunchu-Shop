@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}商品管理 - 管理后台{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h4>管理菜单</h4>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.dashboard') }}" class="text-decoration-none">仪表盘</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.user_management') }}" class="text-decoration-none">用户管理</a>
+                    </li>
+                    <li class="list-group-item active">
+                        <a href="{{ url_for('admin.product_management') }}" class="text-decoration-none text-white">商品管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.order_management') }}" class="text-decoration-none">订单管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.discount_management') }}" class="text-decoration-none">折扣码管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.affiliate_management') }}" class="text-decoration-none">邀请与提现管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.settings') }}" class="text-decoration-none">站点设置</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3>商品管理</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <form method="GET" class="d-flex">
+                                <input type="text" class="form-control me-2" name="search" placeholder="搜索商品" value="{{ search or '' }}">
+                                <button type="submit" class="btn btn-outline-primary">搜索</button>
+                            </form>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-end">
+                                <a href="{{ url_for('admin.add_product') }}" class="btn btn-outline-success me-2">添加商品</a>
+                                <a href="{{ url_for('admin.export_products') }}" class="btn btn-outline-secondary">导出商品</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>商品名称</th>
+                                    <th>分类</th>
+                                    <th>价格</th>
+                                    <th>库存</th>
+                                    <th>销量</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in pagination.items %}
+                                <tr>
+                                    <td>{{ product.id }}</td>
+                                    <td>{{ product.name }}</td>
+                                    <td>{{ product.category }}</td>
+                                    <td>¥{{ product.price }}</td>
+                                    <td>{{ product.stock_virtual }}</td>
+                                    <td>{{ product.sold_count }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if product.is_active else 'secondary' }}">
+                                            {{ '上架' if product.is_active else '下架' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{{ url_for('admin.edit_product', product_id=product.id) }}" class="btn btn-sm btn-outline-primary">编辑</a>
+                                            <a href="{{ url_for('admin.product_cdkeys', product_id=product.id) }}" class="btn btn-sm btn-outline-info">卡密</a>
+                                            <button class="btn btn-sm btn-outline-{{ 'warning' if product.is_active else 'success' }}" onclick="toggleProductStatus({{ product.id }}, '{{ 'active' if product.is_active else 'inactive' }}')">
+                                                {{ '下架' if product.is_active else '上架' }}
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteProduct({{ product.id }})">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center">暂无商品</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    {% if pagination.pages > 1 %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if pagination.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ pagination.get_url(pagination.prev()) }}">上一页</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">上一页</a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for page_num in pagination.iter_pages() %}
+                            {% if page_num %}
+                            {% if pagination.page == page_num %}
+                            <li class="page-item active">
+                                <a class="page-link" href="#">{{ page_num }}</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ pagination.get_url(page_num) }}">{{ page_num }}</a>
+                            </li>
+                            {% endif %}
+                            {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#">...</a>
+                            </li>
+                            {% endif %}
+                            {% endfor %}
+                            
+                            {% if pagination.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ pagination.get_url(pagination.next()) }}">下一页</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">下一页</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        function toggleProductStatus(productId, currentStatus) {
+            const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+            const actionText = currentStatus === 'active' ? '下架' : '上架';
+            
+            fetch('{{ url_for('admin.toggle_product_status') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': (typeof getCsrfToken === 'function' ? getCsrfToken() : '')
+                },
+                body: JSON.stringify({
+                    product_id: productId,
+                    status: newStatus
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotice(`商品${actionText}成功`, 'success');
+                    location.reload();
+                } else {
+                    showNotice(`操作失败：${data.message}`, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('操作商品状态时出错:', error);
+                showNotice('操作失败，请重试', 'danger');
+            });
+        }
+        
+        function deleteProduct(productId) {
+            showNotice('确定要删除此商品吗？此操作不可恢复！', 'warning');
+            setTimeout(() => {
+                fetch('{{ url_for('admin.delete_product', product_id=0) }}'.replace('/0/delete', '/' + productId + '/delete'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': (typeof getCsrfToken === 'function' ? getCsrfToken() : '')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotice('商品删除成功', 'success');
+                        location.reload();
+                    } else {
+                        showNotice(`删除失败：${data.message}`, 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('删除商品时出错:', error);
+                    showNotice('删除失败，请重试', 'danger');
+                });
+            }, 1500);
+        }
+    </script>
+{% endblock %}

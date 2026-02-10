@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}添加用户 - 管理后台{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h4>管理菜单</h4>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.dashboard') }}" class="text-decoration-none">仪表盘</a>
+                    </li>
+                    <li class="list-group-item active">
+                        <a href="{{ url_for('admin.user_management') }}" class="text-decoration-none text-white">用户管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.product_management') }}" class="text-decoration-none">商品管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.order_management') }}" class="text-decoration-none">订单管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.discount_management') }}" class="text-decoration-none">折扣码管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.affiliate_management') }}" class="text-decoration-none">邀请与提现管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.settings') }}" class="text-decoration-none">站点设置</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <h3>添加用户</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="form-group mb-3">
+                            <label for="username" class="form-label">用户名</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="display_name" class="form-label">显示名称</label>
+                            <input type="text" class="form-control" id="display_name" name="display_name" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="email" class="form-label">邮箱</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="password" class="form-label">密码</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="role" class="form-label">角色</label>
+                            <select class="form-control" id="role" name="role">
+                                <option value="user">普通用户</option>
+                                <option value="moderator">版主</option>
+                                <option value="admin">管理员</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="contact" class="form-label">联系方式</label>
+                            <input type="text" class="form-control" id="contact" name="contact">
+                        </div>
+                        <button type="submit" class="btn btn-primary">添加用户</button>
+                        <a href="{{ url_for('admin.user_management') }}" class="btn btn-secondary">取消</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

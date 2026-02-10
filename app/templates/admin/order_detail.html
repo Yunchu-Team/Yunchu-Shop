@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}订单详情 - 管理后台{% endblock %}
+
+{% block content %}
+    {% set status_label = {
+        'pending_payment': '待支付',
+        'user_paid': '已支付',
+        'shipped': '已发货',
+        'completed': '已完成',
+        'rejected': '已拒绝'
+    } %}
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h4>管理菜单</h4>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.dashboard') }}" class="text-decoration-none">仪表盘</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.user_management') }}" class="text-decoration-none">用户管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.product_management') }}" class="text-decoration-none">商品管理</a>
+                    </li>
+                    <li class="list-group-item active">
+                        <a href="{{ url_for('admin.order_management') }}" class="text-decoration-none text-white">订单管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.discount_management') }}" class="text-decoration-none">折扣码管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.affiliate_management') }}" class="text-decoration-none">邀请与提现管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.settings') }}" class="text-decoration-none">站点设置</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>订单信息</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>订单号：</strong>{{ order.order_no }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>创建时间：</strong>{{ order.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>用户：</strong>{{ order.user.username }} ({{ order.user.email }})</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>订单状态：</strong>
+                                <span class="order-status {{ order.cached_status }}">
+                                    {{ status_label.get(order.cached_status, order.cached_status) }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>原始金额：</strong>¥{{ order.original_amount }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>最终金额：</strong>¥{{ order.final_amount }}</p>
+                        </div>
+                    </div>
+                    {% if order.discount_code %}
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <p><strong>折扣码：</strong>{{ order.discount_code.code }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if order.cached_status == 'rejected' and order_state %}
+            {% set ns = namespace(reason='') %}
+            {% for history in order_state.history %}
+                {% if history.status == 'rejected' %}
+                    {% set ns.reason = history.message %}
+                {% endif %}
+            {% endfor %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>拒绝原因</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger mb-0">
+                        {{ ns.reason or '订单已被拒绝' }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>订单商品</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>商品名称</th>
+                                <th>单价</th>
+                                <th>数量</th>
+                                <th>小计</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.order_items %}
+                            <tr>
+                                <td>{{ item.product.name }}</td>
+                                <td>¥{{ item.price }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>¥{{ item.price * item.quantity }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            {% if order_state %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>订单状态历史</h3>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% for history in order_state.history %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <span class="order-status {{ history.status }}">
+                                    {{ status_label.get(history.status, history.status) }}
+                                </span>
+                                <span>{{ history.timestamp }}</span>
+                            </div>
+                            <p class="mb-0 text-muted">{{ history.message }}</p>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if order_state and order_state.assigned_cdkey %}
+            <div class="card mb-4 cdkey-info">
+                <div class="card-header">
+                    <h3>卡密信息</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success">
+                        <p><strong>卡密：</strong></p>
+                        {% if order_state.assigned_cdkey is string %}
+                            <p class="mb-0">{{ order_state.assigned_cdkey }}</p>
+                        {% else %}
+                            <ul class="mb-0">
+                                {% for key in order_state.assigned_cdkey %}
+                                <li>{{ key }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3>订单操作</h3>
+                </div>
+                <div class="card-body">
+                    {% if order.cached_status == 'user_paid' %}
+                    <form method="POST" action="{{ url_for('admin.ship_order', order_id=order.id) }}" class="mb-2">
+                        <button type="submit" class="btn btn-success">发货</button>
+                    </form>
+                    {% endif %}
+                    
+                    {% if order.cached_status == 'shipped' %}
+                    <form method="POST" action="{{ url_for('admin.complete_order', order_id=order.id) }}" class="mb-2">
+                        <button type="submit" class="btn btn-primary">完成订单</button>
+                    </form>
+                    {% endif %}
+                    
+                    {% if order.cached_status != 'completed' %}
+                    <form method="POST" action="{{ url_for('admin.reject_order', order_id=order.id) }}">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="reason" placeholder="拒绝原因" required>
+                            <button type="submit" class="btn btn-danger">拒绝订单</button>
+                        </div>
+                    </form>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('admin.order_management') }}" class="btn btn-secondary">返回订单列表</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

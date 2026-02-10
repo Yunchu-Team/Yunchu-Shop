@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}邀请与提现管理 - 管理后台{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h4>管理菜单</h4>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.dashboard') }}" class="text-decoration-none">仪表盘</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.user_management') }}" class="text-decoration-none">用户管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.product_management') }}" class="text-decoration-none">商品管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.order_management') }}" class="text-decoration-none">订单管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.discount_management') }}" class="text-decoration-none">折扣码管理</a>
+                    </li>
+                    <li class="list-group-item active">
+                        <a href="{{ url_for('admin.affiliate_management') }}" class="text-decoration-none text-white">邀请与提现管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.settings') }}" class="text-decoration-none">站点设置</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">总收入</h5>
+                            <p class="card-text">¥{{ total_earnings }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">待结算收入</h5>
+                            <p class="card-text">¥{{ pending_earnings }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">已提现金额</h5>
+                            <p class="card-text">¥{{ withdrawn_earnings }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">邀请人数</h5>
+                            <p class="card-text">{{ total_invites }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3>提现申请</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>用户</th>
+                                    <th>金额</th>
+                                    <th>状态</th>
+                                    <th>申请时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for withdrawal in withdrawals %}
+                                <tr>
+                                    <td>{{ withdrawal.user.username }}</td>
+                                    <td>¥{{ withdrawal.amount }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'warning' if withdrawal.status == 'pending' else 'success' if withdrawal.status == 'approved' else 'danger' }}">
+                                            {{ '待处理' if withdrawal.status == 'pending' else '已通过' if withdrawal.status == 'approved' else '已拒绝' }}
+                                        </span>
+                                    </td>
+                                    <td>{{ withdrawal.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        {% if withdrawal.status == 'pending' %}
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-success" onclick="approveWithdrawal({{ withdrawal.id }})">通过</button>
+                                            <button class="btn btn-sm btn-danger" onclick="rejectWithdrawal({{ withdrawal.id }})">拒绝</button>
+                                        </div>
+                                        {% else %}
+                                        <span class="text-muted">已处理</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center">暂无提现申请</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        function approveWithdrawal(withdrawalId) {
+            if (confirm('确定要通过此提现申请吗？')) {
+                processWithdrawal(withdrawalId, 'approved');
+            }
+        }
+        
+        function rejectWithdrawal(withdrawalId) {
+            const reason = prompt('请输入拒绝原因：');
+            if (reason !== null) {
+                processWithdrawal(withdrawalId, 'rejected', reason);
+            }
+        }
+        
+        function processWithdrawal(withdrawalId, status, reason = '') {
+            const url = status === 'approved' ? '{{ url_for('admin.approve_withdrawal', withdrawal_id=0) }}'.replace('/0/', '/' + withdrawal_id + '/') : '{{ url_for('admin.reject_withdrawal', withdrawal_id=0) }}'.replace('/0/', '/' + withdrawal_id + '/');
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': (typeof getCsrfToken === 'function' ? getCsrfToken() : '')
+                },
+                body: JSON.stringify({
+                    withdrawal_id: withdrawalId,
+                    status: status,
+                    reason: reason
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (typeof showNotice === 'function') {
+                        showNotice('提现申请处理成功', 'success');
+                    }
+                    location.reload();
+                } else {
+                    if (typeof showNotice === 'function') {
+                        showNotice(`处理失败：${data.message}`, 'danger');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('处理提现申请时出错:', error);
+                if (typeof showNotice === 'function') {
+                    showNotice('处理失败，请重试', 'danger');
+                }
+            });
+        }
+    </script>
+{% endblock %}

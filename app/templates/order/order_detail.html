@@ -1,0 +1,300 @@
+﻿{% extends "base.html" %}
+
+{% block title %}订单详情 - 商品售卖网站{% endblock %}
+
+{% block content %}
+    {% set status_label = {
+        'pending_payment': '待支付',
+        'user_paid': '已支付',
+        'shipped': '已发货',
+        'completed': '已完成',
+        'rejected': '已拒绝'
+    } %}
+    <div class="row">
+        <div class="col-md-8">
+            {% if order_state and order_state.assigned_cdkey %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>卡密信息</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success">
+                        <p><strong>卡密：</strong></p>
+                        {% if order_state.assigned_cdkey is string %}
+                            <p class="mb-0">{{ order_state.assigned_cdkey }}</p>
+                        {% else %}
+                            <ul class="mb-0">
+                                {% for key in order_state.assigned_cdkey %}
+                                <li>{{ key }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% if order_state and not order_state.assigned_cdkey %}
+            {% set ship_ns = namespace(message='') %}
+            {% for history in order_state.history %}
+                {% if history.status == 'shipped' %}
+                    {% set ship_ns.message = history.message %}
+                {% endif %}
+            {% endfor %}
+            {% if ship_ns.message %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>发货内容</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success mb-0">
+                        {{ ship_ns.message }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% endif %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>订单信息</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>订单号：</strong>{{ order.order_no }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>创建时间：</strong>{{ order.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>订单状态：</strong>
+                                <span class="order-status {{ order.cached_status }}">
+                                    {{ status_label.get(order.cached_status, order.cached_status) }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>原始金额：</strong>¥{{ order.original_amount }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>最终金额：</strong>¥{{ order.final_amount }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            {% if order.discount_code %}
+                            <p><strong>折扣码：</strong>{{ order.discount_code.code }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if order.cached_status == 'rejected' and order_state %}
+            {% set ns = namespace(reason='') %}
+            {% for history in order_state.history %}
+                {% if history.status == 'rejected' %}
+                    {% set ns.reason = history.message %}
+                {% endif %}
+            {% endfor %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>拒绝原因</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger mb-0">
+                        {{ ns.reason or '订单已被拒绝' }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>订单商品</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>商品名称</th>
+                                <th>单价</th>
+                                <th>数量</th>
+                                <th>小计</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.order_items %}
+                            <tr>
+                                <td>{{ item.product.name }}</td>
+                                <td>¥{{ item.price }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>¥{{ item.price * item.quantity }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {% if order_state %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>订单状态历史</h3>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% for history in order_state.history %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <span class="order-status {{ history.status }}">
+                                    {{ status_label.get(history.status, history.status) }}
+                                </span>
+                                <span>{{ history.timestamp }}</span>
+                            </div>
+                            <p class="mb-0 text-muted">{{ history.message }}</p>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+            
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3>订单操作</h3>
+                </div>
+                <div class="card-body">
+                    {% if order.cached_status == 'pending_payment' %}
+                    <div class="alert alert-warning">
+                        <div>订单未支付，请扫码完成付款</div>
+                        <div>支付时请备注订单号：{{ order.order_no }}</div>
+                    </div>
+                    {% set pay_qr = '' %}
+                    {% if order_state and order_state.customer and order_state.customer.payment_method %}
+                        {% set pay_method = order_state.customer.payment_method %}
+                        {% if pay_method == 'wechat' %}
+                            {% set pay_qr = site_settings.wechat_qr %}
+                        {% elif pay_method == 'alipay' %}
+                            {% set pay_qr = site_settings.alipay_qr %}
+                        {% elif pay_method == 'card' %}
+                            {% set pay_qr = site_settings.bank_qr %}
+                        {% endif %}
+                    {% endif %}
+                    <div class="border rounded p-3 text-center mb-3">
+                        {% if pay_qr %}
+                            {% if pay_qr.startswith('http://') or pay_qr.startswith('https://') %}
+                                <img src="{{ pay_qr }}" alt="收款码" style="max-width: 240px;">
+                            {% else %}
+                                <img src="/uploads/{{ pay_qr }}" alt="收款码" style="max-width: 240px;">
+                            {% endif %}
+                        {% else %}
+                            <p class="text-muted mb-0">当前支付方式未配置收款码</p>
+                        {% endif %}
+                    </div>
+                    <button class="btn btn-success w-100 mb-2" onclick="payOrder()">我已支付</button>
+                    {% endif %}
+                    {% if order.cached_status == 'shipped' %}
+                    <button class="btn btn-success w-100 mb-2" onclick="confirmReceipt()">确认收货</button>
+                    {% endif %}
+                    {% if order.cached_status == 'rejected' %}
+                    <button class="btn btn-secondary w-100 mb-2" onclick="acknowledgeRejected()">已知悉</button>
+                    {% endif %}
+                    <a href="{{ url_for('user.order_history') }}" class="btn btn-primary w-100">返回订单列表</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        function payOrder() {
+            fetch('{{ url_for("order.pay_order", order_id=order.id) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': (typeof getCsrfToken === 'function' ? getCsrfToken() : '')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (typeof showNotice === 'function') {
+                        showNotice(data.message, 'success');
+                    }
+                    location.reload();
+                } else {
+                    if (typeof showNotice === 'function') {
+                        showNotice(data.message, 'warning');
+                    }
+                }
+            })
+            .catch(error => {
+                if (typeof showNotice === 'function') {
+                    showNotice('支付失败，请重试', 'danger');
+                }
+            });
+        }
+        
+        function confirmReceipt() {
+            fetch('{{ url_for("order.confirm_receipt", order_id=order.id) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': (typeof getCsrfToken === 'function' ? getCsrfToken() : '')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (typeof showNotice === 'function') {
+                        showNotice(data.message, 'success');
+                    }
+                    location.reload();
+                } else {
+                    if (typeof showNotice === 'function') {
+                        showNotice(data.message, 'warning');
+                    }
+                }
+            })
+            .catch(error => {
+                if (typeof showNotice === 'function') {
+                    showNotice('确认收货失败，请重试', 'danger');
+                }
+            });
+        }
+
+        function acknowledgeRejected() {
+            fetch('{{ url_for("order.acknowledge_rejected", order_id=order.id) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': (typeof getCsrfToken === 'function' ? getCsrfToken() : '')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (typeof showNotice === 'function') {
+                        showNotice(data.message, 'success');
+                    }
+                    location.reload();
+                } else {
+                    if (typeof showNotice === 'function') {
+                        showNotice(data.message, 'warning');
+                    }
+                }
+            })
+            .catch(error => {
+                if (typeof showNotice === 'function') {
+                    showNotice('确认失败，请重试', 'danger');
+                }
+            });
+        }
+    </script>
+{% endblock %}

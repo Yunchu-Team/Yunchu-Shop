@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}用户详情 - 管理后台{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h4>管理菜单</h4>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.dashboard') }}" class="text-decoration-none">仪表盘</a>
+                    </li>
+                    <li class="list-group-item active">
+                        <a href="{{ url_for('admin.user_management') }}" class="text-decoration-none text-white">用户管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.product_management') }}" class="text-decoration-none">商品管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.order_management') }}" class="text-decoration-none">订单管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.discount_management') }}" class="text-decoration-none">折扣码管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.affiliate_management') }}" class="text-decoration-none">邀请与提现管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.settings') }}" class="text-decoration-none">站点设置</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>用户信息</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>用户名：</strong>{{ user.username }}</p>
+                            <p><strong>显示名称：</strong>{{ user.display_name }}</p>
+                            <p><strong>邮箱：</strong>{{ user.email }}</p>
+                            <p><strong>联系电话：</strong>{{ user.contact or '-' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>角色：</strong>{{ '管理员' if user.role == 'admin' else '普通用户' if user.role == 'user' else user.role }}</p>
+                            <p><strong>状态：</strong>
+                                <span class="badge bg-{{ 'success' if user.is_active else 'danger' }}">
+                                    {{ '启用' if user.is_active else '禁用' }}
+                                </span>
+                            </p>
+                            <p><strong>注册时间：</strong>{{ user.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                            <p><strong>邀请码：</strong>{{ user.invite_code }}</p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>可提现余额：</strong>¥{{ user.balance_available }}</p>
+                            <p><strong>待结算余额：</strong>¥{{ user.balance_pending }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>累计收益：</strong>¥{{ user.total_earned }}</p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex gap-2">
+                        <form method="POST" action="{{ url_for('admin.toggle_user_status', user_id=user.id) }}">
+                            <button type="submit" class="btn btn-{{ 'danger' if user.is_active else 'success' }}">
+                                {{ '禁用' if user.is_active else '启用' }}
+                            </button>
+                        </form>
+                        {% if current_user.role == 'admin' and user.role != 'admin' %}
+                        <form method="POST" action="{{ url_for('admin.update_user_role', user_id=user.id) }}">
+                            <select name="role" class="form-select d-inline-block w-auto">
+                                <option value="user" {% if user.role == 'user' %}selected{% endif %}>普通用户</option>
+                                <option value="moderator" {% if user.role == 'moderator' %}selected{% endif %}>管理员</option>
+                            </select>
+                            <button type="submit" class="btn btn-primary">更新角色</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>邀请的人({{ invitees|length }})</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>用户名</th>
+                                    <th>显示名称</th>
+                                    <th>邀请时间</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for invitee in invitees %}
+                                <tr>
+                                    <td>{{ invitee.username }}</td>
+                                    <td>{{ invitee.display_name }}</td>
+                                    <td>{{ invitee.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="3" class="text-center">暂无邀请记录</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>最近收益记录</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>来源</th>
+                                    <th>订单号</th>
+                                    <th>金额</th>
+                                    <th>状态</th>
+                                    <th>创建时间</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for earning in earnings %}
+                                <tr>
+                                    <td>{{ earning.source }}</td>
+                                    <td>{{ earning.order_id or '-' }}</td>
+                                    <td>¥{{ earning.amount }}</td>
+                                    <td>{{ earning.status }}</td>
+                                    <td>{{ earning.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center">暂无收益记录</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3>最近提现记录</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>金额</th>
+                                    <th>状态</th>
+                                    <th>反馈</th>
+                                    <th>申请时间</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for withdrawal in withdrawals %}
+                                <tr>
+                                    <td>¥{{ withdrawal.amount }}</td>
+                                    <td>{{ withdrawal.status }}</td>
+                                    <td>{{ withdrawal.feedback or '-' }}</td>
+                                    <td>{{ withdrawal.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center">暂无提现记录</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

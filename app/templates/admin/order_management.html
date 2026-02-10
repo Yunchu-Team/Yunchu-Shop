@@ -1,0 +1,315 @@
+﻿{% extends "base.html" %}
+
+{% block title %}订单管理 - 管理后台{% endblock %}
+
+{% block content %}
+    {% set status_label = {
+        'pending_payment': '待支付',
+        'user_paid': '已支付',
+        'shipped': '已发货',
+        'completed': '已完成',
+        'rejected': '已拒绝'
+    } %}
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h4>管理菜单</h4>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.dashboard') }}" class="text-decoration-none">仪表盘</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.user_management') }}" class="text-decoration-none">用户管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.product_management') }}" class="text-decoration-none">商品管理</a>
+                    </li>
+                    <li class="list-group-item active">
+                        <a href="{{ url_for('admin.order_management') }}" class="text-decoration-none text-white">订单管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.discount_management') }}" class="text-decoration-none">折扣码管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.affiliate_management') }}" class="text-decoration-none">邀请与提现管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.settings') }}" class="text-decoration-none">站点设置</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <h3>订单管理</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <form method="GET" class="d-flex">
+                                <input type="text" class="form-control me-2" name="search" placeholder="搜索订单号" value="{{ search or '' }}">
+                                <button type="submit" class="btn btn-primary">搜索</button>
+                            </form>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-end">
+                                <select class="form-select" id="statusFilter" onchange="filterByStatus()">
+                                    <option value="">全部状态</option>
+                                    <option value="pending_payment" {% if status == 'pending_payment' %}selected{% endif %}>待支付</option>
+                                    <option value="user_paid" {% if status == 'user_paid' %}selected{% endif %}>已支付</option>
+                                    <option value="shipped" {% if status == 'shipped' %}selected{% endif %}>已发货</option>
+                                    <option value="completed" {% if status == 'completed' %}selected{% endif %}>已完成</option>
+                                    <option value="rejected" {% if status == 'rejected' %}selected{% endif %}>已拒绝</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>订单号</th>
+                                    <th>用户</th>
+                                    <th>金额</th>
+                                    <th>状态</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in pagination.items %}
+                                <tr>
+                                    <td>{{ order.order_no }}</td>
+                                    <td>{{ order.user.username }}</td>
+                                    <td>¥{{ order.final_amount }}</td>
+                                    <td>
+                                        <span class="order-status {{ order.cached_status }}">
+                                            {{ status_label.get(order.cached_status, order.cached_status) }}
+                                        </span>
+                                    </td>
+                                    <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{{ url_for('admin.order_detail', order_id=order.id) }}" class="btn btn-sm btn-outline-primary">查看</a>
+                                            {% if order.cached_status == 'pending_payment' %}
+                                            <button class="btn btn-sm btn-outline-success" onclick="markAsPaid({{ order.id }})">标记已支付</button>
+                                            {% elif order.cached_status == 'user_paid' %}
+                                            <button class="btn btn-sm btn-outline-warning" onclick="shipOrder({{ order.id }})">发货</button>
+                                            {% elif order.cached_status == 'shipped' %}
+                                            <button class="btn btn-sm btn-outline-info" onclick="completeOrder({{ order.id }})">完成订单</button>
+                                            {% endif %}
+                                            <button class="btn btn-sm btn-outline-danger" onclick="rejectOrder({{ order.id }})">拒绝</button>
+
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center">暂无订单</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    {% if pagination.pages > 1 %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if pagination.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ pagination.get_url(pagination.prev()) }}">上一页</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">上一页</a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for page_num in pagination.iter_pages() %}
+                            {% if page_num %}
+                            {% if pagination.page == page_num %}
+                            <li class="page-item active">
+                                <a class="page-link" href="#">{{ page_num }}</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ pagination.get_url(page_num) }}">{{ page_num }}</a>
+                            </li>
+                            {% endif %}
+                            {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#">...</a>
+                            </li>
+                            {% endif %}
+                            {% endfor %}
+                            
+                            {% if pagination.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ pagination.get_url(pagination.next()) }}">下一页</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">下一页</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        function filterByStatus() {
+            const status = document.getElementById('statusFilter').value;
+            const url = new URL(window.location.href);
+            if (status) {
+                url.searchParams.set('status', status);
+            } else {
+                url.searchParams.delete('status');
+            }
+            window.location.href = url.toString();
+        }
+        
+        function markAsPaid(orderId) {
+            showNotice('确定要将此订单标记为已支付吗？', 'warning');
+            setTimeout(() => {
+                updateOrderStatus(orderId, 'user_paid');
+            }, 1500);
+        }
+        
+        function shipOrder(orderId) {
+            // 检查订单是否有卡密商品
+            fetch('{{ url_for('admin.order_detail', order_id=0) }}'.replace('/0/', '/' + orderId + '/'))
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const hasCdkey = doc.querySelector('.cdkey-info');
+                    
+                    if (hasCdkey) {
+                        // 有卡密，直接发货（不需要填写发货内容）
+                        fetch('{{ url_for('admin.ship_order', order_id=0) }}'.replace('/0/', '/' + orderId + '/'), {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': (typeof getCsrfToken === 'function' ? getCsrfToken() : '')
+                            },
+                            body: JSON.stringify({})
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                showNotice('订单已发货', 'success');
+                                location.reload();
+                            } else {
+                                showNotice(data.message, 'danger');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('发货时出错:', error);
+                            showNotice('发货失败，请重试', 'danger');
+                        });
+                    } else {
+                        // 没有卡密，需要输入发货内容
+                        showInputDialog('手动发货', '请输入具体的发货内容（如：账号密码、下载链接等）', '')
+                            .then(shipContent => {
+                                if (shipContent !== null) {
+                                    if (shipContent.trim() === '') {
+                                        showNotice('请输入发货内容', 'warning');
+                                        return;
+                                    }
+                                    
+                                    fetch('{{ url_for('admin.ship_order', order_id=0) }}'.replace('/0/', '/' + orderId + '/'), {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRFToken': (typeof getCsrfToken === 'function' ? getCsrfToken() : '')
+                                        },
+                                        body: JSON.stringify({
+                                            ship_content: shipContent
+                                        })
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            showNotice('订单已发货', 'success');
+                                            location.reload();
+                                        } else {
+                                            showNotice(data.message, 'danger');
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('发货时出错:', error);
+                                        showNotice('发货失败，请重试', 'danger');
+                                    });
+                                }
+                            });
+                    }
+                })
+                .catch(error => {
+                    console.error('检查订单详情时出错:', error);
+                    // 如果检查失败，默认使用普通发货流程
+                    showNotice('确定要发货此订单吗？', 'warning');
+                    setTimeout(() => {
+                        updateOrderStatus(orderId, 'shipped');
+                    }, 1500);
+                });
+        }
+        
+        function completeOrder(orderId) {
+            showNotice('确定要完成此订单吗？', 'warning');
+            setTimeout(() => {
+                updateOrderStatus(orderId, 'completed');
+            }, 1500);
+        }
+        
+        function rejectOrder(orderId) {
+            const reason = prompt('请输入拒绝原因：');
+            if (reason !== null) {
+                updateOrderStatus(orderId, 'rejected', reason);
+            }
+        }
+        
+        function updateOrderStatus(orderId, status, reason = '') {
+            fetch('{{ url_for('admin.update_order_status') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': (typeof getCsrfToken === 'function' ? getCsrfToken() : '')
+                },
+                body: JSON.stringify({
+                    order_id: orderId,
+                    status: status,
+                    reason: reason
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (typeof showNotice === 'function') {
+                        showNotice('订单状态更新成功', 'success');
+                    }
+                    location.reload();
+                } else {
+                    if (typeof showNotice === 'function') {
+                        showNotice(`更新失败：${data.message}`, 'danger');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('更新订单状态时出错:', error);
+                if (typeof showNotice === 'function') {
+                    showNotice('更新失败，请重试', 'danger');
+                }
+            });
+        }
+    </script>
+{% endblock %}

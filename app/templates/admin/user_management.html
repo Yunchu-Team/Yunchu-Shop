@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}用户管理 - 管理后台{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h4>管理菜单</h4>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.dashboard') }}" class="text-decoration-none">仪表盘</a>
+                    </li>
+                    <li class="list-group-item active">
+                        <a href="{{ url_for('admin.user_management') }}" class="text-decoration-none text-white">用户管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.product_management') }}" class="text-decoration-none">商品管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.order_management') }}" class="text-decoration-none">订单管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.discount_management') }}" class="text-decoration-none">折扣码管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.affiliate_management') }}" class="text-decoration-none">邀请与提现管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.settings') }}" class="text-decoration-none">站点设置</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <h3>用户管理</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <form method="GET" class="d-flex">
+                                <input type="text" class="form-control me-2" name="search" placeholder="搜索用户" value="{{ search or '' }}">
+                                <button type="submit" class="btn btn-primary">搜索</button>
+                            </form>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-end">
+                                <a href="{{ url_for('admin.add_user') }}" class="btn btn-success">添加用户</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>用户名</th>
+                                    <th>显示名称</th>
+                                    <th>邮箱</th>
+                                    <th>角色</th>
+                                    <th>注册时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in pagination.items %}
+                                <tr>
+                                    <td>{{ user.id }}</td>
+                                    <td>{{ user.username }}</td>
+                                    <td>{{ user.display_name }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if user.role == 'admin' else 'primary' if user.role == 'user' else 'secondary' }}" style="color: white;">
+                                            {{ '管理员' if user.role == 'admin' else '普通用户' if user.role == 'user' else user.role }}
+                                        </span>
+                                    </td>
+                                    <td>{{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{{ url_for('admin.user_detail', user_id=user.id) }}" class="btn btn-sm btn-primary">查看</a>
+                                            {% if user.role != 'admin' %}
+                                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editRoleModal" data-user-id="{{ user.id }}" data-current-role="{{ user.role }}">编辑角色</button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center">暂无用户</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    {% if pagination.pages > 1 %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if pagination.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ pagination.get_url(pagination.prev()) }}">上一页</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">上一页</a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for page_num in pagination.iter_pages() %}
+                            {% if page_num %}
+                            {% if pagination.page == page_num %}
+                            <li class="page-item active">
+                                <a class="page-link" href="#">{{ page_num }}</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ pagination.get_url(page_num) }}">{{ page_num }}</a>
+                            </li>
+                            {% endif %}
+                            {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#">...</a>
+                            </li>
+                            {% endif %}
+                            {% endfor %}
+                            
+                            {% if pagination.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ pagination.get_url(pagination.next()) }}">下一页</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">下一页</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 编辑角色模态框 -->
+    <div class="modal fade" id="editRoleModal" tabindex="-1" aria-labelledby="editRoleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editRoleModalLabel">编辑用户角色</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editRoleForm">
+                        <input type="hidden" id="editUserId" name="user_id">
+                        <div class="form-group">
+                            <label for="editRole" class="form-label">用户角色</label>
+                            <select class="form-control" id="editRole" name="role">
+                                <option value="user">普通用户</option>
+                                <option value="vip">VIP用户</option>
+                                <option value="moderator">版主</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="saveRoleBtn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const editRoleModal = document.getElementById('editRoleModal');
+            if (editRoleModal) {
+                editRoleModal.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    const userId = button.getAttribute('data-user-id');
+                    const currentRole = button.getAttribute('data-current-role');
+                    
+                    document.getElementById('editUserId').value = userId;
+                    document.getElementById('editRole').value = currentRole;
+                });
+            }
+            
+            document.getElementById('saveRoleBtn').addEventListener('click', function() {
+                const userId = document.getElementById('editUserId').value;
+                const role = document.getElementById('editRole').value;
+                
+                fetch('{{ url_for('admin.update_user_role', user_id=0) }}'.replace('/0/', '/' + userId + '/'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': (typeof getCsrfToken === 'function' ? getCsrfToken() : '')
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        role: role
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (typeof showNotice === 'function') {
+                            showNotice('用户角色更新成功', 'success');
+                        }
+                        location.reload();
+                    } else {
+                        if (typeof showNotice === 'function') {
+                            showNotice('更新失败：' + data.message, 'danger');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('更新用户角色时出错:', error);
+                    if (typeof showNotice === 'function') {
+                        showNotice('更新失败，请重试', 'danger');
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}{{ '编辑折扣码' if discount else '添加折扣码' }} - 管理后台{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h4>管理菜单</h4>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.dashboard') }}" class="text-decoration-none">仪表盘</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.user_management') }}" class="text-decoration-none">用户管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.product_management') }}" class="text-decoration-none">商品管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.order_management') }}" class="text-decoration-none">订单管理</a>
+                    </li>
+                    <li class="list-group-item active">
+                        <a href="{{ url_for('admin.discount_management') }}" class="text-decoration-none text-white">折扣码管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.affiliate_management') }}" class="text-decoration-none">邀请与提现管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.settings') }}" class="text-decoration-none">站点设置</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <h3>{{ '编辑折扣码' if discount else '添加折扣码' }}</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="form-group mb-3">
+                            <label for="code" class="form-label">折扣码</label>
+                            <input type="text" class="form-control" id="code" name="code" value="{{ discount.code if discount else '' }}" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="type" class="form-label">折扣类型</label>
+                            <select class="form-control" id="type" name="type" required>
+                                <option value="percentage" {% if discount and discount.type == 'percentage' %}selected{% endif %}>百分比折扣</option>
+                                <option value="fixed" {% if discount and discount.type == 'fixed' %}selected{% endif %}>固定金额折扣</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="value" class="form-label">折扣值</label>
+                            <input type="number" class="form-control" id="value" name="value" step="0.01" value="{{ discount.value if discount else '' }}" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="min_order_amount" class="form-label">最低订单金额</label>
+                            <input type="number" class="form-control" id="min_order_amount" name="min_order_amount" step="0.01" value="{{ discount.min_order_amount if discount else 0 }}">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="max_uses" class="form-label">最大使用次数（留空表示无限制）</label>
+                            <input type="number" class="form-control" id="max_uses" name="max_uses" value="{{ discount.max_uses if discount and discount.max_uses != None else '' }}">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="valid_from" class="form-label">生效日期</label>
+                            <input type="date" class="form-control" id="valid_from" name="valid_from" value="{{ discount.valid_from.strftime('%Y-%m-%d') if discount else '' }}">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="valid_to" class="form-label">过期日期（留空表示永久有效）</label>
+                            <input type="date" class="form-control" id="valid_to" name="valid_to" value="{{ discount.valid_to.strftime('%Y-%m-%d') if discount and discount.valid_to != None else '' }}">
+                        </div>
+                        <button type="submit" class="btn btn-primary">{{ '更新折扣码' if discount else '添加折扣码' }}</button>
+                        <a href="{{ url_for('admin.discount_management') }}" class="btn btn-secondary">取消</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

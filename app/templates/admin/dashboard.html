@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}仪表盘 - 管理后台{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h4>管理菜单</h4>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item active">
+                        <a href="{{ url_for('admin.dashboard') }}" class="text-decoration-none text-white">仪表盘</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.user_management') }}" class="text-decoration-none">用户管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.product_management') }}" class="text-decoration-none">商品管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.order_management') }}" class="text-decoration-none">订单管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.discount_management') }}" class="text-decoration-none">折扣码管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.affiliate_management') }}" class="text-decoration-none">邀请与提现管理</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin.settings') }}" class="text-decoration-none">站点设置</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <h3>仪表盘</h3>
+                </div>
+                <div class="card-body">
+                    {% if pending_orders and pending_orders > 0 %}
+                    <div class="alert alert-warning d-flex justify-content-between align-items-center">
+                        <span>当前有 {{ pending_orders }} 笔未完成订单，请及时处理</span>
+                        <a class="btn btn-sm btn-outline-dark" href="{{ url_for('admin.order_management') }}">去处理</a>
+                    </div>
+                    {% endif %}
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card" style="background-color: white; color: #2c3e50; border: 1px solid #e0e0e0; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);">
+                                <div class="card-body">
+                                    <h5 class="card-title">今日订单</h5>
+                                    <p class="card-text display-4">{{ today_orders }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card" style="background-color: white; color: #2c3e50; border: 1px solid #e0e0e0; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);">
+                                <div class="card-body">
+                                    <h5 class="card-title">今日销售额</h5>
+                                    <p class="card-text display-4">¥{{ '%.2f'|format(today_sales) }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card" style="background-color: white; color: #2c3e50; border: 1px solid #e0e0e0; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);">
+                                <div class="card-body">
+                                    <h5 class="card-title">今日用户增长</h5>
+                                    <p class="card-text display-4">{{ today_users }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card" style="background-color: white; color: #2c3e50; border: 1px solid #e0e0e0; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);">
+                                <div class="card-body">
+                                    <h5 class="card-title">总用户数</h5>
+                                    <p class="card-text display-4">{{ total_users }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4>销售统计</h4>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="salesChart" width="400" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // 初始化图表
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            const salesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+                    datasets: [{
+                        label: '销售额',
+                        data: {{ monthly_sales|tojson }},
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ site_settings.site_name if site_settings else '云初の小店' }}{% endblock %}</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    {% if site_settings and site_settings.site_logo %}
+        {% if site_settings.site_logo.startswith('http://') or site_settings.site_logo.startswith('https://') %}
+            <link rel="icon" href="{{ site_settings.site_logo }}">
+            <link rel="shortcut icon" href="{{ site_settings.site_logo }}">
+        {% else %}
+            <link rel="icon" href="/uploads/{{ site_settings.site_logo }}">
+            <link rel="shortcut icon" href="/uploads/{{ site_settings.site_logo }}">
+        {% endif %}
+    {% endif %}
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}">
+
+    {% block css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                {% if site_settings and site_settings.site_logo %}
+                    {% if site_settings.site_logo.startswith('http://') or site_settings.site_logo.startswith('https://') %}
+                        <img src="{{ site_settings.site_logo }}" alt="Logo" style="height: 28px; margin-right: 6px;">
+                    {% else %}
+                        <img src="/uploads/{{ site_settings.site_logo }}" alt="Logo" style="height: 28px; margin-right: 6px;">
+                    {% endif %}
+                {% else %}
+                    <i class="bi bi-shop"></i>
+                {% endif %}
+                {{ site_settings.site_name if site_settings else '云初の小店' }}
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">
+                            <i class="bi bi-house"></i> 首页
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('product.product_list') }}">
+                            <i class="bi bi-grid"></i> 商品列表
+                        </a>
+                    </li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('user.order_history') }}">
+                            <i class="bi bi-person"></i> 个人中心
+                        </a>
+                    </li>
+                    {% if current_user.role == 'admin' or current_user.role == 'moderator' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
+                            <i class="bi bi-gear"></i> 管理后台
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.login') }}">
+                            <i class="bi bi-box-arrow-in-right"></i> 登录
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.register') }}">
+                            <i class="bi bi-person-plus"></i> 注册
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+
+                <!-- 搜索功能已移除 -->
+
+                <a href="{{ url_for('order.cart_page') }}" class="btn btn-outline-dark position-relative me-3">
+                    <i class="bi bi-cart"></i> 购物车
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark cart-badge d-none">
+                        0
+                    </span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="row mb-4">
+            <div class="col-md-12">
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>关于我们</h5>
+                    <p>{{ site_settings.about_us|replace('|', '<br>')|safe if site_settings and site_settings.about_us else (site_settings.site_name if site_settings else '云初の小店') ~ ' - 提供优质商品和服务' }}</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>快速链接</h5>
+                    <ul class="list-unstyled">
+                        {% if quick_links and quick_links|length > 0 %}
+                            {% for link in quick_links %}
+                                <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+                            {% endfor %}
+                        {% else %}
+                            <li><a href="{{ url_for('index') }}">首页</a></li>
+                            <li><a href="{{ url_for('product.product_list') }}">商品列表</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>联系方式</h5>
+                    <p><i class="bi bi-envelope"></i> 邮箱：{{ site_settings.contact_email if site_settings and site_settings.contact_email else 'contact@qiulingyan.com' }}</p>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-md-12 text-center">
+                    <p>&copy; 2026 <a href="https://github.com/Yunchu-Team" target="_blank">YunchuTeam</a> 保留所有权利</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cart-manager.js') }}"></script>
+
+    {% block js %}{% endblock %}
+</body>
+</html>

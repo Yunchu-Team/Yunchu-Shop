@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}购物车 - 商品售卖网站{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3>购物车</h3>
+                </div>
+                <div class="card-body">
+                    {% if cart %}
+                    <div class="cart-items">
+                        {% for item in cart %}
+                        <div class="cart-item d-flex align-items-center" data-product-id="{{ item.product_id }}">
+                            <div class="cart-item-image me-4">
+                                {% if item.image %}
+                                <img src="/uploads/{{ item.image }}" alt="{{ item.name }}" class="img-fluid" style="width: 100px;">
+                                {% else %}
+                                <img src="https://via.placeholder.com/100" alt="{{ item.name }}" class="img-fluid" style="width: 100px;">
+                                {% endif %}
+                            </div>
+                            <div class="cart-item-info flex-grow-1">
+                                <h5 class="cart-item-name">{{ item.name }}</h5>
+                                <p class="cart-item-price">¥{{ item.price }}</p>
+                            </div>
+                            <div class="cart-item-actions">
+                                <div class="input-group" style="max-width: 120px;">
+                                    <button class="btn btn-outline-secondary quantity-btn" data-action="decrease">-</button>
+                                    <input type="number" class="form-control text-center quantity-input" data-product-id="{{ item.product_id }}" value="{{ item.quantity }}" min="1">
+                                    <button class="btn btn-outline-secondary quantity-btn" data-action="increase">+</button>
+                                </div>
+                                <button class="btn btn-danger btn-sm mt-2 remove-from-cart-btn" data-product-id="{{ item.product_id }}">删除</button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-cart text-center py-5">
+                        <p>购物车为空</p>
+                        <a href="{{ url_for('product.product_list') }}" class="btn btn-primary">去购物</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3>结算信息</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>商品总价</span>
+                            <span id="cart-total">¥{{ total }}</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>优惠</span>
+                            <span>-¥0.00</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>运费</span>
+                            <span>¥0.00</span>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between font-weight-bold">
+                            <span>总计</span>
+                            <span id="cart-total-final">¥{{ total }}</span>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="discount_code" class="form-label">折扣码</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="discount_code" placeholder="输入折扣码">
+                            <button class="btn btn-outline-secondary" id="apply-discount-btn">应用</button>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('order.checkout') }}" class="btn btn-primary btn-lg w-100">去结算</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const quantityInputs = document.querySelectorAll('.quantity-input');
+            const quantityBtns = document.querySelectorAll('.quantity-btn');
+            const removeBtns = document.querySelectorAll('.remove-from-cart-btn');
+            const applyDiscountBtn = document.getElementById('apply-discount-btn');
+            
+            quantityBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const action = this.dataset.action;
+                    const input = this.parentElement.querySelector('.quantity-input');
+                    let value = parseInt(input.value);
+                    
+                    if (action === 'increase') {
+                        value++;
+                    } else if (action === 'decrease' && value > 1) {
+                        value--;
+                    }
+                    
+                    input.value = value;
+                    if (window.cartManager) {
+                        window.cartManager.updateQuantity(parseInt(input.dataset.productId), value);
+                    }
+                });
+            });
+            
+            quantityInputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    let value = parseInt(this.value);
+                    if (value < 1) value = 1;
+                    this.value = value;
+                    if (window.cartManager) {
+                        window.cartManager.updateQuantity(parseInt(this.dataset.productId), value);
+                    }
+                });
+            });
+            
+            removeBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (confirm('确定要删除此商品吗？')) {
+                        if (window.cartManager) {
+                            window.cartManager.removeFromCart(parseInt(this.dataset.productId));
+                        }
+                    }
+                });
+            });
+            
+            applyDiscountBtn.addEventListener('click', function() {
+                const code = document.getElementById('discount_code').value;
+                if (code) {
+                    fetch('{{ url_for('order.apply_discount') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': (typeof getCsrfToken === 'function' ? getCsrfToken() : '')
+                        },
+                        body: JSON.stringify({
+                            code: code
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // 更新页面显示
+                            document.getElementById('cart-total-final').textContent = '¥' + data.final_amount.toFixed(2);
+                            
+                            // 显示优惠信息
+                            const discountElement = document.querySelector('.card-body .mb-3:nth-child(2) span:last-child');
+                            if (discountElement) {
+                                discountElement.textContent = '-¥' + data.discount_amount.toFixed(2);
+                            }
+                            
+                            if (typeof showNotice === 'function') {
+                                showNotice(data.message, 'success');
+                            } else {
+                                alert(data.message);
+                            }
+                        } else {
+                            if (typeof showNotice === 'function') {
+                                showNotice(data.message, 'danger');
+                            } else {
+                                alert(data.message);
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('应用折扣码时出错:', error);
+                        if (typeof showNotice === 'function') {
+                            showNotice('应用折扣码失败，请重试', 'danger');
+                        } else {
+                            alert('应用折扣码失败，请重试');
+                        }
+                    });
+                } else {
+                    if (typeof showNotice === 'function') {
+                        showNotice('请输入折扣码', 'warning');
+                    } else {
+                        alert('请输入折扣码');
+                    }
+                }
+            });
+            
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,224 @@
+﻿{% extends "base.html" %}
+
+{% block title %}结算 - 商品售卖网站{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>支付方式</h3>
+                </div>
+                <div class="card-body">
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="payment_method" id="payment-wechat" value="wechat" checked>
+                        <label class="form-check-label" for="payment-wechat">微信支付</label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="payment_method" id="payment-alipay" value="alipay">
+                        <label class="form-check-label" for="payment-alipay">支付宝</label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="payment_method" id="payment-card" value="card">
+                        <label class="form-check-label" for="payment-card">{{ site_settings.bank_label if site_settings and site_settings.bank_label else '银行卡' }}</label>
+                    </div>
+                    <div class="mt-4" id="payment-qr-section" style="display: none;">
+                        <h6>付款二维码</h6>
+                        <div class="alert alert-warning" id="payment-tip">
+                            <div>请截图保存二维码，打开微信扫码支付</div>
+                            <div>支付完成后请返回订单详情点击"我已支付"</div>
+                            <div>支付时请备注订单号：<span id="order-no-text"></span></div>
+                        </div>
+                        <div id="payment-qr-box" class="border rounded p-3 text-center">
+                            <p class="text-muted mb-0">请选择支付方式</p>
+                        </div>
+                        <div class="mt-3">
+                            <a class="btn btn-outline-primary w-100" id="go-order-detail" href="#">查看订单详情</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3>订单摘要</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 订单商品列表 -->
+                    <div class="mb-4">
+                        {% for item in cart %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>{{ item.name }} × {{ item.quantity }}</span>
+                            <span>¥{{ '%.2f'|format(item.price * item.quantity) }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>商品总价</span>
+                            <span id="checkout-original">¥{{ '%.2f'|format(original_amount) }}</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>优惠</span>
+                            <span id="checkout-discount">-¥0.00</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>运费</span>
+                            <span>¥0.00</span>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between font-weight-bold">
+                            <span>总计</span>
+                            <span id="checkout-final">¥{{ '%.2f'|format(original_amount) }}</span>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="discount_code" class="form-label">折扣码</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="discount_code" placeholder="输入折扣码">
+                            <button class="btn btn-outline-secondary" id="apply-discount-btn" type="button">应用</button>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-lg w-100" id="create-order-btn">提交订单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const createOrderBtn = document.getElementById('create-order-btn');
+            const applyDiscountBtn = document.getElementById('apply-discount-btn');
+            const originalAmountText = document.getElementById('checkout-original');
+            const discountText = document.getElementById('checkout-discount');
+            const finalText = document.getElementById('checkout-final');
+            const qrBox = document.getElementById('payment-qr-box');
+            const qrSection = document.getElementById('payment-qr-section');
+            const orderNoText = document.getElementById('order-no-text');
+            const goOrderDetail = document.getElementById('go-order-detail');
+            const qrMap = {
+                wechat: '{{ site_settings.wechat_qr if site_settings and site_settings.wechat_qr else "" }}',
+                alipay: '{{ site_settings.alipay_qr if site_settings and site_settings.alipay_qr else "" }}',
+                card: '{{ site_settings.bank_qr if site_settings and site_settings.bank_qr else "" }}'
+            };
+
+            let discountCodeApplied = '';
+            let discountAmount = 0;
+
+            const updateQr = () => {
+                const selected = document.querySelector('input[name="payment_method"]:checked')?.value;
+                const qrPath = selected ? qrMap[selected] : '';
+                if (qrPath) {
+                    const isRemote = qrPath.startsWith('http://') || qrPath.startsWith('https://');
+                    const src = isRemote ? qrPath : `/uploads/${qrPath}`;
+                    qrBox.innerHTML = `<img src="${src}" alt="付款二维码" style="max-width: 240px;">`;
+                } else {
+                    qrBox.innerHTML = '<p class="text-muted mb-0">当前支付方式未配置二维码</p>';
+                }
+            };
+
+            document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+                radio.addEventListener('change', updateQr);
+            });
+            updateQr();
+            
+            createOrderBtn.addEventListener('click', function() {
+                const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value;
+
+                if (!paymentMethod) {
+                    alert('请选择支付方式');
+                    return;
+                }
+
+                fetch('{{ url_for("order.create_order") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': (typeof getCsrfToken === 'function' ? getCsrfToken() : '')
+                    },
+                    body: JSON.stringify({
+                        discount_code: discountCodeApplied || document.getElementById('discount_code').value,
+                        name: '',
+                        phone: '',
+                        email: '',
+                        address: '',
+                        payment_method: paymentMethod
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (typeof showNotice === 'function') {
+                            showNotice('订单创建成功，订单号：' + data.order_no, 'success');
+                        }
+                        const detailUrl = "{{ url_for('order.order_detail', order_id=0) }}".replace('0', data.order_id);
+                        window.location.href = detailUrl;
+                    } else {
+                        if (typeof showNotice === 'function') {
+                            showNotice('订单创建失败：' + data.message, 'danger');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('创建订单时出错:', error);
+                    if (typeof showNotice === 'function') {
+                        showNotice('订单创建失败，请重试', 'danger');
+                    }
+                });
+            });
+
+            applyDiscountBtn.addEventListener('click', function() {
+                const code = document.getElementById('discount_code').value.trim();
+                if (!code) {
+                    alert('请输入折扣码');
+                    return;
+                }
+
+                const originalAmount = parseFloat(originalAmountText.textContent.replace('¥', '')) || 0;
+
+                fetch("{{ url_for('order.validate_discount') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': (typeof getCsrfToken === 'function' ? getCsrfToken() : '')
+                    },
+                    body: JSON.stringify({
+                        code: code,
+                        original_amount: originalAmount
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        discountCodeApplied = code;
+                        discountAmount = data.discount_amount || 0;
+                        discountText.textContent = `-¥${discountAmount.toFixed(2)}`;
+                        finalText.textContent = `¥${(data.final_amount || originalAmount).toFixed(2)}`;
+                        if (typeof showNotice === 'function') {
+                            showNotice(data.message, 'success');
+                        }
+                    } else {
+                        if (typeof showNotice === 'function') {
+                            showNotice(data.message, 'warning');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('验证折扣码时出错:', error);
+                    if (typeof showNotice === 'function') {
+                        showNotice('折扣码验证失败，请重试', 'danger');
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}
